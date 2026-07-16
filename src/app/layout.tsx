@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DDL to POJO - SQL建表语句转Java实体类",
-  description: "将 DDL SQL 建表语句解析为 Java POJO 实体类代码",
+  title: "Fox Tool - 开发者工具箱",
+  description: "开发者工具箱，包含 DDL to POJO、JSON 格式化等实用工具",
 };
 
 export default function RootLayout({

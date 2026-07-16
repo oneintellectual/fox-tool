@@ -1,363 +1,198 @@
-"use client";
+import Link from "next/link";
 
-import { useState, useCallback } from "react";
-import { parseDDL, TableInfo } from "@/lib/ddl-parser";
-import { generatePOJO, PojoConfig } from "@/lib/pojo-generator";
-
-const EXAMPLE_SQL = `CREATE TABLE sys_user (
-  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '用户ID',
-  username VARCHAR(64) NOT NULL COMMENT '用户名',
-  password VARCHAR(128) NOT NULL COMMENT '密码',
-  nickname VARCHAR(64) DEFAULT '' COMMENT '昵称',
-  email VARCHAR(128) DEFAULT NULL COMMENT '邮箱',
-  phone VARCHAR(20) DEFAULT NULL COMMENT '手机号',
-  avatar VARCHAR(256) DEFAULT NULL COMMENT '头像URL',
-  status TINYINT NOT NULL DEFAULT 1 COMMENT '状态: 0-禁用, 1-启用',
-  department_id BIGINT DEFAULT NULL COMMENT '部门ID',
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
-  deleted TINYINT NOT NULL DEFAULT 0 COMMENT '是否删除: 0-未删除, 1-已删除',
-  PRIMARY KEY (id),
-  UNIQUE KEY uk_username (username)
-) COMMENT='系统用户表';
-
-CREATE TABLE sys_role (
-  id BIGINT NOT NULL AUTO_INCREMENT COMMENT '角色ID',
-  role_name VARCHAR(64) NOT NULL COMMENT '角色名称',
-  role_key VARCHAR(64) NOT NULL COMMENT '角色标识',
-  sort_order INT NOT NULL DEFAULT 0 COMMENT '排序',
-  status TINYINT NOT NULL DEFAULT 1 COMMENT '状态: 0-禁用, 1-启用',
-  remark VARCHAR(256) DEFAULT '' COMMENT '备注',
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (id)
-) COMMENT='系统角色表';`;
-
-function toCamelCase(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  gradient: string;
+  shadowColor: string;
+  href: string;
+  tags: string[];
 }
 
+const tools: Tool[] = [
+  {
+    id: "ddl-to-pojo",
+    name: "DDL to POJO",
+    description: "解析 SQL 建表语句，自动生成 Java 实体类代码，支持 Lombok、MyBatis-Plus、Swagger 注解",
+    icon: "☕",
+    gradient: "from-blue-500 to-indigo-600",
+    shadowColor: "shadow-blue-500/20",
+    href: "/tools/ddl-to-pojo",
+    tags: ["SQL", "Java", "代码生成"],
+  },
+  {
+    id: "coming-soon-1",
+    name: "JSON 格式化",
+    description: "JSON 数据格式化、压缩、校验与转换工具",
+    icon: "{ }",
+    gradient: "from-emerald-500 to-teal-600",
+    shadowColor: "shadow-emerald-500/20",
+    href: "#",
+    tags: ["JSON", "格式化"],
+  },
+  {
+    id: "coming-soon-2",
+    name: "Base64 编解码",
+    description: "文本与 Base64 互转，支持文件编码",
+    icon: "🔐",
+    gradient: "from-amber-500 to-orange-600",
+    shadowColor: "shadow-amber-500/20",
+    href: "#",
+    tags: ["编码", "解码"],
+  },
+  {
+    id: "coming-soon-3",
+    name: "正则测试",
+    description: "在线正则表达式测试与匹配验证",
+    icon: ".*",
+    gradient: "from-violet-500 to-purple-600",
+    shadowColor: "shadow-violet-500/20",
+    href: "#",
+    tags: ["正则", "测试"],
+  },
+  {
+    id: "coming-soon-4",
+    name: "时间戳转换",
+    description: "Unix 时间戳与日期时间互转",
+    icon: "⏱",
+    gradient: "from-rose-500 to-pink-600",
+    shadowColor: "shadow-rose-500/20",
+    href: "#",
+    tags: ["时间", "转换"],
+  },
+  {
+    id: "coming-soon-5",
+    name: "颜色转换",
+    description: "HEX、RGB、HSL 颜色格式互转与色板",
+    icon: "🎨",
+    gradient: "from-cyan-500 to-sky-600",
+    shadowColor: "shadow-cyan-500/20",
+    href: "#",
+    tags: ["颜色", "设计"],
+  },
+];
+
 export default function Home() {
-  const [sql, setSql] = useState(EXAMPLE_SQL);
-  const [tables, setTables] = useState<TableInfo[]>([]);
-  const [selectedTable, setSelectedTable] = useState<number>(0);
-  const [pojoCode, setPojoCode] = useState("");
-  const [parsed, setParsed] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const [config, setConfig] = useState<PojoConfig>({
-    packageName: "com.example.entity",
-    useLombok: true,
-    useSwagger: false,
-    useMybatisPlus: true,
-    author: "",
-  });
-
-  const handleParse = useCallback(() => {
-    const result = parseDDL(sql);
-    setTables(result);
-    setParsed(true);
-    setSelectedTable(0);
-
-    if (result.length > 0) {
-      const code = generatePOJO(result[0], config);
-      setPojoCode(code);
-    } else {
-      setPojoCode("");
-    }
-  }, [sql, config]);
-
-  const handleSelectTable = useCallback(
-    (index: number) => {
-      setSelectedTable(index);
-      if (tables[index]) {
-        const code = generatePOJO(tables[index], config);
-        setPojoCode(code);
-      }
-    },
-    [tables, config]
-  );
-
-  const handleRegenerate = useCallback(() => {
-    if (tables.length > 0 && tables[selectedTable]) {
-      const code = generatePOJO(tables[selectedTable], config);
-      setPojoCode(code);
-    }
-  }, [tables, selectedTable, config]);
-
-  const handleCopy = useCallback(async () => {
-    await navigator.clipboard.writeText(pojoCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [pojoCode]);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/80">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-lg shadow-lg shadow-blue-500/25">
-              D
+      <header className="border-b border-slate-200/80 bg-white/60 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-950/60">
+        <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-400 to-rose-500 text-white font-bold text-xl shadow-lg shadow-orange-500/25">
+              🦊
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-                DDL to POJO
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Fox Tool
               </h1>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                SQL 建表语句 → Java 实体类
+                开发者工具箱 · 效率提升利器
               </p>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* SQL 输入区 */}
+      {/* Main */}
+      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+        {/* 分类标题 */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-              📝 DDL SQL 输入
-            </label>
-            <button
-              onClick={handleParse}
-              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 active:scale-[0.98]"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              解析 SQL
-            </button>
-          </div>
-          <textarea
-            value={sql}
-            onChange={(e) => {
-              setSql(e.target.value);
-              setParsed(false);
-            }}
-            className="w-full h-64 rounded-xl border border-slate-200 bg-white p-4 font-mono text-sm text-slate-800 shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-blue-400 dark:focus:ring-blue-400/10 resize-y"
-            placeholder="请输入 CREATE TABLE 的 DDL 语句..."
-            spellCheck={false}
-          />
+          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+            全部工具
+          </h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            选择一个工具开始使用
+          </p>
         </div>
 
-        {/* 解析结果 */}
-        {parsed && tables.length > 0 && (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* 左侧：字段列表 */}
-            <div>
-              {/* 表选择 Tab */}
-              <div className="mb-4 flex gap-2 flex-wrap">
-                {tables.map((table, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSelectTable(index)}
-                    className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
-                      selectedTable === index
-                        ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25"
-                        : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700"
-                    }`}
+        {/* 工具卡片网格 */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {tools.map((tool) => {
+            const isAvailable = tool.id === "ddl-to-pojo";
+
+            if (isAvailable) {
+              return (
+                <Link
+                  key={tool.id}
+                  href={tool.href}
+                  className={`group relative flex flex-col rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 dark:border-slate-700/80 dark:bg-slate-900 hover:shadow-lg hover:border-slate-300 hover:-translate-y-0.5 dark:hover:border-slate-600 cursor-pointer`}
+                >
+                  <div
+                    className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${tool.gradient} text-white text-xl font-bold shadow-lg ${tool.shadowColor}`}
                   >
-                    {table.className}
-                    {table.comment && (
-                      <span className="ml-1.5 text-xs opacity-70">
-                        ({table.comment})
+                    {tool.icon}
+                  </div>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {tool.name}
+                  </h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                    {tool.description}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {tool.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-md bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                      >
+                        {tag}
                       </span>
-                    )}
-                  </button>
-                ))}
-              </div>
+                    ))}
+                  </div>
+                  <div className="absolute right-5 top-6 text-slate-300 transition-all group-hover:text-blue-500 group-hover:translate-x-0.5 dark:text-slate-600 dark:group-hover:text-blue-400">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </Link>
+              );
+            }
 
-              {/* 字段表格 */}
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
-                        <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">字段名</th>
-                        <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">SQL 类型</th>
-                        <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">Java 类型</th>
-                        <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">属性名</th>
-                        <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">注释</th>
-                        <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">PK</th>
-                        <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">可空</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {tables[selectedTable]?.columns.map((col, i) => (
-                        <tr
-                          key={i}
-                          className="border-b border-slate-50 transition-colors hover:bg-blue-50/50 dark:border-slate-800/50 dark:hover:bg-blue-900/10"
-                        >
-                          <td className="px-4 py-2.5">
-                            <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-mono text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                              {col.name}
-                            </code>
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <span className="text-xs font-mono text-orange-600 dark:text-orange-400">
-                              {col.type}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-                              {col.javaType}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <code className="text-xs font-mono text-emerald-600 dark:text-emerald-400">
-                              {toCamelCase(col.name)}
-                            </code>
-                          </td>
-                          <td className="px-4 py-2.5 text-xs text-slate-500 dark:text-slate-400 max-w-[200px] truncate">
-                            {col.comment || "-"}
-                          </td>
-                          <td className="px-4 py-2.5 text-center">
-                            {col.primaryKey ? (
-                              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
-                                🔑
-                              </span>
-                            ) : (
-                              <span className="text-slate-300 dark:text-slate-600">-</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-2.5 text-center">
-                            {col.nullable ? (
-                              <span className="text-green-500">✓</span>
-                            ) : (
-                              <span className="text-slate-300 dark:text-slate-600">✗</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            return (
+              <div
+                key={tool.id}
+                className="group relative flex flex-col rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 dark:border-slate-700/80 dark:bg-slate-900 opacity-60 cursor-default"
+              >
+                <div
+                  className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${tool.gradient} text-white text-xl font-bold shadow-lg ${tool.shadowColor}`}
+                >
+                  {tool.icon}
                 </div>
-              </div>
-
-              {/* 配置区 */}
-              <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  ⚙️ 生成配置
+                <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+                  {tool.name}
+                  <span className="ml-2 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    即将上线
+                  </span>
                 </h3>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-xs text-slate-500 dark:text-slate-400">包名</label>
-                    <input
-                      type="text"
-                      value={config.packageName}
-                      onChange={(e) => setConfig({ ...config, packageName: e.target.value })}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs text-slate-500 dark:text-slate-400">作者</label>
-                    <input
-                      type="text"
-                      value={config.author}
-                      onChange={(e) => setConfig({ ...config, author: e.target.value })}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                      placeholder="可选"
-                    />
-                  </div>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                  {tool.description}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {tool.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-md bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
-                <div className="mt-3 flex flex-wrap gap-4">
-                  <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                    <input
-                      type="checkbox"
-                      checked={config.useLombok}
-                      onChange={(e) => setConfig({ ...config, useLombok: e.target.checked })}
-                      className="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
-                    />
-                    Lombok (@Data)
-                  </label>
-                  <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                    <input
-                      type="checkbox"
-                      checked={config.useMybatisPlus}
-                      onChange={(e) => setConfig({ ...config, useMybatisPlus: e.target.checked })}
-                      className="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
-                    />
-                    MyBatis-Plus 注解
-                  </label>
-                  <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                    <input
-                      type="checkbox"
-                      checked={config.useSwagger}
-                      onChange={(e) => setConfig({ ...config, useSwagger: e.target.checked })}
-                      className="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
-                    />
-                    Swagger 注解
-                  </label>
-                </div>
-                <button
-                  onClick={handleRegenerate}
-                  className="mt-3 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                >
-                  🔄 重新生成
-                </button>
               </div>
-            </div>
-
-            {/* 右侧：POJO 代码 */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  ☕ Java POJO 代码
-                </label>
-                <button
-                  onClick={handleCopy}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                >
-                  {copied ? (
-                    <>
-                      <svg className="h-3.5 w-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                      已复制
-                    </>
-                  ) : (
-                    <>
-                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                      复制代码
-                    </>
-                  )}
-                </button>
-              </div>
-              <pre className="overflow-auto rounded-xl border border-slate-200 bg-slate-900 p-4 text-sm leading-relaxed shadow-sm max-h-[600px]">
-                <code className="text-slate-100 font-mono whitespace-pre">
-                  {pojoCode}
-                </code>
-              </pre>
-            </div>
-          </div>
-        )}
-
-        {/* 解析无结果 */}
-        {parsed && tables.length === 0 && (
-          <div className="mt-8 flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-16 dark:border-slate-700 dark:bg-slate-900">
-            <div className="text-4xl mb-3">🤔</div>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              未检测到有效的 CREATE TABLE 语句，请检查 SQL 格式
-            </p>
-          </div>
-        )}
-
-        {/* 未解析时的提示 */}
-        {!parsed && (
-          <div className="mt-8 flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white py-16 dark:border-slate-700 dark:bg-slate-900">
-            <div className="text-4xl mb-3">🚀</div>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              输入 DDL SQL 语句后，点击「解析 SQL」按钮开始
-            </p>
-          </div>
-        )}
+            );
+          })}
+        </div>
       </main>
+
+      {/* Footer */}
+      <footer className="mt-auto border-t border-slate-200/60 bg-white/40 backdrop-blur-sm dark:border-slate-800/60 dark:bg-slate-950/40">
+        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+          <p className="text-center text-xs text-slate-400 dark:text-slate-500">
+            Fox Tool · 开发者工具箱 · Made with ❤️
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

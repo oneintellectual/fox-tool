@@ -1,9 +1,15 @@
 import { TableInfo, ColumnInfo } from "./ddl-parser";
 
 /**
- * Java POJO 生成器配置
+ * 支持的代码生成语言
  */
-export interface PojoConfig {
+export type SupportedLanguage = "java";
+
+/**
+ * 代码生成器配置
+ */
+export interface CodeConfig {
+  language: SupportedLanguage;
   packageName: string;
   useLombok: boolean;
   useSwagger: boolean;
@@ -11,13 +17,83 @@ export interface PojoConfig {
   author: string;
 }
 
-const DEFAULT_CONFIG: PojoConfig = {
+/**
+ * Java 生成器专属配置
+ */
+export interface JavaConfig {
+  packageName: string;
+  useLombok: boolean;
+  useSwagger: boolean;
+  useMybatisPlus: boolean;
+  author: string;
+}
+
+const DEFAULT_JAVA_CONFIG: JavaConfig = {
   packageName: "com.example.entity",
   useLombok: true,
   useSwagger: false,
   useMybatisPlus: false,
   author: "",
 };
+
+/**
+ * SQL 类型到 Java 类型的映射
+ */
+const SQL_TO_JAVA_TYPE: Record<string, string> = {
+  // 整数类型
+  TINYINT: "Integer",
+  SMALLINT: "Integer",
+  MEDIUMINT: "Integer",
+  INT: "Integer",
+  INTEGER: "Integer",
+  BIGINT: "Long",
+
+  // 浮点类型
+  FLOAT: "Float",
+  DOUBLE: "Double",
+  DECIMAL: "BigDecimal",
+  NUMERIC: "BigDecimal",
+
+  // 字符串类型
+  CHAR: "String",
+  VARCHAR: "String",
+  TINYTEXT: "String",
+  TEXT: "String",
+  MEDIUMTEXT: "String",
+  LONGTEXT: "String",
+  ENUM: "String",
+  SET: "String",
+
+  // 日期类型
+  DATE: "LocalDate",
+  TIME: "LocalTime",
+  DATETIME: "LocalDateTime",
+  TIMESTAMP: "LocalDateTime",
+  YEAR: "Integer",
+
+  // 二进制类型
+  BINARY: "byte[]",
+  VARBINARY: "byte[]",
+  TINYBLOB: "byte[]",
+  BLOB: "byte[]",
+  MEDIUMBLOB: "byte[]",
+  LONGBLOB: "byte[]",
+
+  // 布尔类型
+  BOOLEAN: "Boolean",
+  BOOL: "Boolean",
+
+  // JSON
+  JSON: "String",
+};
+
+/**
+ * 获取 Java 类型
+ */
+function getJavaType(sqlType: string): string {
+  const upperType = sqlType.toUpperCase().split("(")[0].trim();
+  return SQL_TO_JAVA_TYPE[upperType] || "String";
+}
 
 /**
  * 下划线转驼峰
@@ -37,10 +113,10 @@ function toPascalCase(name: string): string {
 }
 
 /**
- * 生成 Java POJO 代码
+ * 生成 Java 代码
  */
-export function generatePOJO(table: TableInfo, config: Partial<PojoConfig> = {}): string {
-  const cfg = { ...DEFAULT_CONFIG, ...config };
+export function generateJava(table: TableInfo, config: Partial<JavaConfig> = {}): string {
+  const cfg = { ...DEFAULT_JAVA_CONFIG, ...config };
   const lines: string[] = [];
 
   // 包声明
@@ -106,11 +182,12 @@ export function generatePOJO(table: TableInfo, config: Partial<PojoConfig> = {})
 /**
  * 收集需要导入的类
  */
-function collectImports(table: TableInfo, cfg: PojoConfig): string[] {
+function collectImports(table: TableInfo, cfg: JavaConfig): string[] {
   const imports = new Set<string>();
 
   for (const column of table.columns) {
-    switch (column.javaType) {
+    const javaType = getJavaType(column.type);
+    switch (javaType) {
       case "LocalDate":
         imports.add("import java.time.LocalDate;");
         break;
@@ -154,9 +231,10 @@ function collectImports(table: TableInfo, cfg: PojoConfig): string[] {
 /**
  * 生成字段代码
  */
-function generateField(column: ColumnInfo, cfg: PojoConfig): string {
+function generateField(column: ColumnInfo, cfg: JavaConfig): string {
   const lines: string[] = [];
   const fieldName = toCamelCase(column.name);
+  const javaType = getJavaType(column.type);
 
   // 字段注释
   if (column.comment) {
@@ -180,7 +258,7 @@ function generateField(column: ColumnInfo, cfg: PojoConfig): string {
     lines.push(`    @ApiModelProperty("${column.comment || fieldName}")`);
   }
 
-  lines.push(`    private ${column.javaType} ${fieldName};`);
+  lines.push(`    private ${javaType} ${fieldName};`);
 
   return lines.join("\n");
 }
@@ -191,7 +269,8 @@ function generateField(column: ColumnInfo, cfg: PojoConfig): string {
 function generateGetter(column: ColumnInfo): string {
   const fieldName = toCamelCase(column.name);
   const methodName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
-  return `    public ${column.javaType} get${methodName}() {\n        return ${fieldName};\n    }`;
+  const javaType = getJavaType(column.type);
+  return `    public ${javaType} get${methodName}() {\n        return ${fieldName};\n    }`;
 }
 
 /**
@@ -200,5 +279,6 @@ function generateGetter(column: ColumnInfo): string {
 function generateSetter(column: ColumnInfo): string {
   const fieldName = toCamelCase(column.name);
   const methodName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
-  return `    public void set${methodName}(${column.javaType} ${fieldName}) {\n        this.${fieldName} = ${fieldName};\n    }`;
+  const javaType = getJavaType(column.type);
+  return `    public void set${methodName}(${javaType} ${fieldName}) {\n        this.${fieldName} = ${fieldName};\n    }`;
 }

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Fox Tool - 开发者工具箱",
-  description: "开发者工具箱，包含 DDL to POJO、JSON 格式化等实用工具",
+  description: "开发者工具箱，包含 DDL to Code、JSON 格式化等实用工具",
 };
 
 export default function RootLayout({

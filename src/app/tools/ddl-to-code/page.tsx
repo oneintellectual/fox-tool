@@ -3,7 +3,13 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { parseDDL, TableInfo } from "@/lib/ddl-parser";
-import { generatePOJO, PojoConfig } from "@/lib/pojo-generator";
+import {
+  generateCode,
+  CodeGenerateConfig,
+  SupportedLanguage,
+  SUPPORTED_LANGUAGES,
+  getTargetType,
+} from "@/lib/code-generator";
 
 const EXAMPLE_SQL = `CREATE TABLE sys_user (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '用户ID',
@@ -40,21 +46,24 @@ function toCamelCase(name: string): string {
     .replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 }
 
-export default function DdlToPojoPage() {
+export default function DdlToCodePage() {
   const [sql, setSql] = useState(EXAMPLE_SQL);
   const [tables, setTables] = useState<TableInfo[]>([]);
   const [selectedTable, setSelectedTable] = useState<number>(0);
-  const [pojoCode, setPojoCode] = useState("");
+  const [generatedCode, setGeneratedCode] = useState("");
   const [parsed, setParsed] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const [config, setConfig] = useState<PojoConfig>({
+  const [config, setConfig] = useState<CodeGenerateConfig>({
+    language: "java",
     packageName: "com.example.entity",
     useLombok: true,
     useSwagger: false,
     useMybatisPlus: true,
     author: "",
   });
+
+  const currentLang = SUPPORTED_LANGUAGES.find((l) => l.value === config.language)!;
 
   const handleParse = useCallback(() => {
     const result = parseDDL(sql);
@@ -63,10 +72,10 @@ export default function DdlToPojoPage() {
     setSelectedTable(0);
 
     if (result.length > 0) {
-      const code = generatePOJO(result[0], config);
-      setPojoCode(code);
+      const code = generateCode(result[0], config);
+      setGeneratedCode(code);
     } else {
-      setPojoCode("");
+      setGeneratedCode("");
     }
   }, [sql, config]);
 
@@ -74,8 +83,8 @@ export default function DdlToPojoPage() {
     (index: number) => {
       setSelectedTable(index);
       if (tables[index]) {
-        const code = generatePOJO(tables[index], config);
-        setPojoCode(code);
+        const code = generateCode(tables[index], config);
+        setGeneratedCode(code);
       }
     },
     [tables, config]
@@ -83,16 +92,28 @@ export default function DdlToPojoPage() {
 
   const handleRegenerate = useCallback(() => {
     if (tables.length > 0 && tables[selectedTable]) {
-      const code = generatePOJO(tables[selectedTable], config);
-      setPojoCode(code);
+      const code = generateCode(tables[selectedTable], config);
+      setGeneratedCode(code);
     }
   }, [tables, selectedTable, config]);
 
+  const handleLanguageChange = useCallback(
+    (language: SupportedLanguage) => {
+      const newConfig = { ...config, language };
+      setConfig(newConfig);
+      if (tables.length > 0 && tables[selectedTable]) {
+        const code = generateCode(tables[selectedTable], newConfig);
+        setGeneratedCode(code);
+      }
+    },
+    [config, tables, selectedTable]
+  );
+
   const handleCopy = useCallback(async () => {
-    await navigator.clipboard.writeText(pojoCode);
+    await navigator.clipboard.writeText(generatedCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [pojoCode]);
+  }, [generatedCode]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
@@ -110,14 +131,14 @@ export default function DdlToPojoPage() {
               </svg>
             </Link>
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-lg shadow-lg shadow-blue-500/25">
-              ☕
+              🔧
             </div>
             <div>
               <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-                DDL to POJO
+                DDL to Code
               </h1>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                SQL 建表语句 → Java 实体类
+                SQL 建表语句 → 多语言代码
               </p>
             </div>
           </div>
@@ -189,7 +210,7 @@ export default function DdlToPojoPage() {
                       <tr className="border-b border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/50">
                         <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">字段名</th>
                         <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">SQL 类型</th>
-                        <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">Java 类型</th>
+                        <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">{currentLang.label} 类型</th>
                         <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">属性名</th>
                         <th className="px-4 py-3 text-left font-semibold text-slate-600 dark:text-slate-300">注释</th>
                         <th className="px-4 py-3 text-center font-semibold text-slate-600 dark:text-slate-300">PK</th>
@@ -214,7 +235,7 @@ export default function DdlToPojoPage() {
                           </td>
                           <td className="px-4 py-2.5">
                             <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-                              {col.javaType}
+                              {getTargetType(col.type, config.language)}
                             </span>
                           </td>
                           <td className="px-4 py-2.5">
@@ -253,56 +274,84 @@ export default function DdlToPojoPage() {
                 <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
                   ⚙️ 生成配置
                 </h3>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-xs text-slate-500 dark:text-slate-400">包名</label>
-                    <input
-                      type="text"
-                      value={config.packageName}
-                      onChange={(e) => setConfig({ ...config, packageName: e.target.value })}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs text-slate-500 dark:text-slate-400">作者</label>
-                    <input
-                      type="text"
-                      value={config.author}
-                      onChange={(e) => setConfig({ ...config, author: e.target.value })}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                      placeholder="可选"
-                    />
+
+                {/* 语言选择 */}
+                <div className="mb-3">
+                  <label className="mb-1.5 block text-xs text-slate-500 dark:text-slate-400">目标语言</label>
+                  <div className="flex gap-2">
+                    {SUPPORTED_LANGUAGES.map((lang) => (
+                      <button
+                        key={lang.value}
+                        onClick={() => handleLanguageChange(lang.value)}
+                        className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                          config.language === lang.value
+                            ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                        }`}
+                      >
+                        <span>{lang.icon}</span>
+                        {lang.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-4">
-                  <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                    <input
-                      type="checkbox"
-                      checked={config.useLombok}
-                      onChange={(e) => setConfig({ ...config, useLombok: e.target.checked })}
-                      className="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
-                    />
-                    Lombok (@Data)
-                  </label>
-                  <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                    <input
-                      type="checkbox"
-                      checked={config.useMybatisPlus}
-                      onChange={(e) => setConfig({ ...config, useMybatisPlus: e.target.checked })}
-                      className="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
-                    />
-                    MyBatis-Plus 注解
-                  </label>
-                  <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                    <input
-                      type="checkbox"
-                      checked={config.useSwagger}
-                      onChange={(e) => setConfig({ ...config, useSwagger: e.target.checked })}
-                      className="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
-                    />
-                    Swagger 注解
-                  </label>
-                </div>
+
+                {/* Java 专属配置 */}
+                {config.language === "java" && (
+                  <>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-1 block text-xs text-slate-500 dark:text-slate-400">包名</label>
+                        <input
+                          type="text"
+                          value={config.packageName}
+                          onChange={(e) => setConfig({ ...config, packageName: e.target.value })}
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs text-slate-500 dark:text-slate-400">作者</label>
+                        <input
+                          type="text"
+                          value={config.author}
+                          onChange={(e) => setConfig({ ...config, author: e.target.value })}
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                          placeholder="可选"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-4">
+                      <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={config.useLombok}
+                          onChange={(e) => setConfig({ ...config, useLombok: e.target.checked })}
+                          className="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
+                        />
+                        Lombok (@Data)
+                      </label>
+                      <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={config.useMybatisPlus}
+                          onChange={(e) => setConfig({ ...config, useMybatisPlus: e.target.checked })}
+                          className="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
+                        />
+                        MyBatis-Plus 注解
+                      </label>
+                      <label className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                        <input
+                          type="checkbox"
+                          checked={config.useSwagger}
+                          onChange={(e) => setConfig({ ...config, useSwagger: e.target.checked })}
+                          className="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500"
+                        />
+                        Swagger 注解
+                      </label>
+                    </div>
+                  </>
+                )}
+
                 <button
                   onClick={handleRegenerate}
                   className="mt-3 rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
@@ -312,11 +361,11 @@ export default function DdlToPojoPage() {
               </div>
             </div>
 
-            {/* 右侧：POJO 代码 */}
+            {/* 右侧：生成代码 */}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  ☕ Java POJO 代码
+                  {currentLang.icon} {currentLang.label} 代码
                 </label>
                 <button
                   onClick={handleCopy}
@@ -341,7 +390,7 @@ export default function DdlToPojoPage() {
               </div>
               <pre className="overflow-auto rounded-xl border border-slate-200 bg-slate-900 p-4 text-sm leading-relaxed shadow-sm max-h-[600px]">
                 <code className="text-slate-100 font-mono whitespace-pre">
-                  {pojoCode}
+                  {generatedCode}
                 </code>
               </pre>
             </div>

@@ -13,13 +13,13 @@ interface Tool {
 
 const tools: Tool[] = [
   {
-    id: "ddl-to-pojo",
-    name: "DDL to POJO",
-    description: "解析 SQL 建表语句，自动生成 Java 实体类代码，支持 Lombok、MyBatis-Plus、Swagger 注解",
-    icon: "☕",
+    id: "ddl-to-code",
+    name: "DDL to Code",
+    description: "解析 SQL 建表语句，自动生成多语言代码，支持 Java 实体类（Lombok、MyBatis-Plus、Swagger 注解）",
+    icon: "🔧",
     gradient: "from-blue-500 to-indigo-600",
     shadowColor: "shadow-blue-500/20",
-    href: "/tools/ddl-to-pojo",
+    href: "/tools/ddl-to-code",
     tags: ["SQL", "Java", "代码生成"],
   },
   {
@@ -111,7 +111,7 @@ export default function Home() {
         {/* 工具卡片网格 */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {tools.map((tool) => {
-            const isAvailable = tool.id === "ddl-to-pojo";
+            const isAvailable = tool.id === "ddl-to-code";
 
             if (isAvailable) {
               return (

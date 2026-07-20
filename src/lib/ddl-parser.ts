@@ -6,7 +6,6 @@
 export interface ColumnInfo {
   name: string;
   type: string;
-  javaType: string;
   comment: string;
   nullable: boolean;
   primaryKey: boolean;
@@ -19,65 +18,6 @@ export interface TableInfo {
   className: string;
   comment: string;
   columns: ColumnInfo[];
-}
-
-/**
- * SQL 类型到 Java 类型的映射
- */
-const SQL_TO_JAVA_TYPE: Record<string, string> = {
-  // 整数类型
-  TINYINT: "Integer",
-  SMALLINT: "Integer",
-  MEDIUMINT: "Integer",
-  INT: "Integer",
-  INTEGER: "Integer",
-  BIGINT: "Long",
-
-  // 浮点类型
-  FLOAT: "Float",
-  DOUBLE: "Double",
-  DECIMAL: "BigDecimal",
-  NUMERIC: "BigDecimal",
-
-  // 字符串类型
-  CHAR: "String",
-  VARCHAR: "String",
-  TINYTEXT: "String",
-  TEXT: "String",
-  MEDIUMTEXT: "String",
-  LONGTEXT: "String",
-  ENUM: "String",
-  SET: "String",
-
-  // 日期类型
-  DATE: "LocalDate",
-  TIME: "LocalTime",
-  DATETIME: "LocalDateTime",
-  TIMESTAMP: "LocalDateTime",
-  YEAR: "Integer",
-
-  // 二进制类型
-  BINARY: "byte[]",
-  VARBINARY: "byte[]",
-  TINYBLOB: "byte[]",
-  BLOB: "byte[]",
-  MEDIUMBLOB: "byte[]",
-  LONGBLOB: "byte[]",
-
-  // 布尔类型
-  BOOLEAN: "Boolean",
-  BOOL: "Boolean",
-
-  // JSON
-  JSON: "String",
-};
-
-/**
- * 获取 Java 类型
- */
-function getJavaType(sqlType: string): string {
-  const upperType = sqlType.toUpperCase().split("(")[0].trim();
-  return SQL_TO_JAVA_TYPE[upperType] || "String";
 }
 
 /**
@@ -288,7 +228,6 @@ function parseColumnDefinition(
   return {
     name,
     type,
-    javaType: getJavaType(type),
     comment,
     nullable,
     primaryKey,

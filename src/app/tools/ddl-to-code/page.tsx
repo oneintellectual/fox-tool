@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { parseDDL, TableInfo } from "@/lib/ddl-parser";
 import {
@@ -10,6 +11,10 @@ import {
   SUPPORTED_LANGUAGES,
   getTargetType,
 } from "@/lib/code-generator";
+
+// 动态导入 CodeMirror 组件，避免 SSR 问题
+const SqlEditor = dynamic(() => import("@/components/SqlEditor"), { ssr: false });
+const CodeViewer = dynamic(() => import("@/components/CodeViewer"), { ssr: false });
 
 const EXAMPLE_SQL = `CREATE TABLE sys_user (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '用户ID',
@@ -163,15 +168,14 @@ export default function DdlToCodePage() {
               解析 SQL
             </button>
           </div>
-          <textarea
+          <SqlEditor
             value={sql}
-            onChange={(e) => {
-              setSql(e.target.value);
+            onChange={(val) => {
+              setSql(val);
               setParsed(false);
             }}
-            className="w-full h-64 rounded-xl border border-slate-200 bg-white p-4 font-mono text-sm text-slate-800 shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:border-blue-400 dark:focus:ring-blue-400/10 resize-y"
             placeholder="请输入 CREATE TABLE 的 DDL 语句..."
-            spellCheck={false}
+            height="280px"
           />
         </div>
 
@@ -388,11 +392,11 @@ export default function DdlToCodePage() {
                   )}
                 </button>
               </div>
-              <pre className="overflow-auto rounded-xl border border-slate-200 bg-slate-900 p-4 text-sm leading-relaxed shadow-sm max-h-[600px]">
-                <code className="text-slate-100 font-mono whitespace-pre">
-                  {generatedCode}
-                </code>
-              </pre>
+              <CodeViewer
+                value={generatedCode}
+                language={config.language}
+                height="600px"
+              />
             </div>
           </div>
         )}

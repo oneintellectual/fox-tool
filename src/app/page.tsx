@@ -23,6 +23,16 @@ const tools: Tool[] = [
     tags: ["SQL", "Java", "代码生成"],
   },
   {
+    id: "sql-diff",
+    name: "SQL Diff",
+    description: "对比两组建表 SQL 差异，自动生成 ALTER TABLE 语句，支持新增表、删除表、新增列、删除列、修改列",
+    icon: "⚡",
+    gradient: "from-emerald-500 to-teal-600",
+    shadowColor: "shadow-emerald-500/20",
+    href: "/tools/sql-diff",
+    tags: ["SQL", "对比", "ALTER"],
+  },
+  {
     id: "coming-soon-1",
     name: "JSON 格式化",
     description: "JSON 数据格式化、压缩、校验与转换工具",
@@ -111,7 +121,7 @@ export default function Home() {
         {/* 工具卡片网格 */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {tools.map((tool) => {
-            const isAvailable = tool.id === "ddl-to-code";
+            const isAvailable = ["ddl-to-code", "sql-diff"].includes(tool.id);
 
             if (isAvailable) {
               return (

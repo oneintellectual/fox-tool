@@ -33,6 +33,16 @@ const tools: Tool[] = [
     tags: ["SQL", "对比", "ALTER"],
   },
   {
+    id: "ssh-monitor",
+    name: "SSH Linux 监控",
+    description: "通过 SSH 连接远程 Linux 服务器，实时监控 CPU、内存、磁盘、网络与进程指标",
+    icon: "📡",
+    gradient: "from-violet-500 to-purple-600",
+    shadowColor: "shadow-violet-500/20",
+    href: "/tools/ssh-monitor",
+    tags: ["SSH", "Linux", "监控"],
+  },
+  {
     id: "coming-soon-1",
     name: "JSON 格式化",
     description: "JSON 数据格式化、压缩、校验与转换工具",
@@ -121,7 +131,7 @@ export default function Home() {
         {/* 工具卡片网格 */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {tools.map((tool) => {
-            const isAvailable = ["ddl-to-code", "sql-diff"].includes(tool.id);
+            const isAvailable = ["ddl-to-code", "sql-diff", "ssh-monitor"].includes(tool.id);
 
             if (isAvailable) {
               return (

@@ -43,6 +43,16 @@ const tools: Tool[] = [
     tags: ["SSH", "Linux", "监控"],
   },
   {
+    id: "diagram",
+    name: "绘图工具",
+    description: "通过表单填写节点与连线，自动布局生成软件施工图与网络拓扑图，支持导出 SVG / Mermaid / JSON",
+    icon: "📐",
+    gradient: "from-cyan-500 to-sky-600",
+    shadowColor: "shadow-cyan-500/20",
+    href: "/tools/diagram",
+    tags: ["绘图", "拓扑图", "架构图"],
+  },
+  {
     id: "coming-soon-1",
     name: "JSON 格式化",
     description: "JSON 数据格式化、压缩、校验与转换工具",
@@ -131,7 +141,7 @@ export default function Home() {
         {/* 工具卡片网格 */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {tools.map((tool) => {
-            const isAvailable = ["ddl-to-code", "sql-diff", "ssh-monitor"].includes(tool.id);
+            const isAvailable = ["ddl-to-code", "sql-diff", "ssh-monitor", "diagram"].includes(tool.id);
 
             if (isAvailable) {
               return (

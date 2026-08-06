@@ -22,6 +22,13 @@ function getLanguageExtension(lang: SupportedLanguage | string) {
       return go();
     case "sql":
       return sql();
+    case "yaml":
+    case "yml":
+    case "shell":
+    case "bash":
+    case "text":
+      // 纯文本，不启用特定语法高亮
+      return [];
     default:
       return java();
   }

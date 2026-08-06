@@ -63,6 +63,16 @@ const tools: Tool[] = [
     tags: ["AI", "WebGPU", "本地推理"],
   },
   {
+    id: "docker-compose",
+    name: "Docker Compose 生成器",
+    description: "将 docker run 命令批量转换为 docker-compose.yml 配置文件，支持端口、卷、环境变量、健康检查等",
+    icon: "🐳",
+    gradient: "from-orange-500 to-rose-600",
+    shadowColor: "shadow-orange-500/20",
+    href: "/tools/docker-compose",
+    tags: ["Docker", "Compose", "YAML"],
+  },
+  {
     id: "coming-soon-1",
     name: "JSON 格式化",
     description: "JSON 数据格式化、压缩、校验与转换工具",
@@ -151,7 +161,7 @@ export default function Home() {
         {/* 工具卡片网格 */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {tools.map((tool) => {
-            const isAvailable = ["ddl-to-code", "sql-diff", "ssh-monitor", "diagram", "chat"].includes(tool.id);
+            const isAvailable = ["ddl-to-code", "sql-diff", "ssh-monitor", "diagram", "chat", "docker-compose"].includes(tool.id);
 
             if (isAvailable) {
               return (

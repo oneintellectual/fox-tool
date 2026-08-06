@@ -29,9 +29,15 @@ export default function SqlEditor({
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
   const valueRef = useRef(value);
-  valueRef.current = value;
+
+  // 同步最新 props 到 ref（在 effect 中赋值，避免 render 阶段写 ref）
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
   // 初始化编辑器
   useEffect(() => {
@@ -101,8 +107,7 @@ export default function SqlEditor({
       view.destroy();
       viewRef.current = null;
     };
-    // 只在挂载时初始化
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // 依赖 darkMode/height/placeholder：这些变化时重建编辑器
   }, [darkMode, height, placeholder]);
 
   // 外部 value 变化时同步到编辑器

@@ -43,7 +43,11 @@ export default function CodeViewer({
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const valueRef = useRef(value);
-  valueRef.current = value;
+
+  // 同步最新 value 到 ref（在 effect 中赋值，避免 render 阶段写 ref）
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
   useEffect(() => {
     if (!containerRef.current) return;

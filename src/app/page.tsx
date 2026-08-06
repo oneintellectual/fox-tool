@@ -53,6 +53,16 @@ const tools: Tool[] = [
     tags: ["绘图", "拓扑图", "架构图"],
   },
   {
+    id: "chat",
+    name: "AI 对话",
+    description: "基于 WebLLM + WebGPU 的浏览器本地 AI 对话，模型完全在设备内推理，数据不离开浏览器",
+    icon: "💬",
+    gradient: "from-emerald-500 to-teal-600",
+    shadowColor: "shadow-emerald-500/20",
+    href: "/tools/chat",
+    tags: ["AI", "WebGPU", "本地推理"],
+  },
+  {
     id: "coming-soon-1",
     name: "JSON 格式化",
     description: "JSON 数据格式化、压缩、校验与转换工具",
@@ -141,7 +151,7 @@ export default function Home() {
         {/* 工具卡片网格 */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {tools.map((tool) => {
-            const isAvailable = ["ddl-to-code", "sql-diff", "ssh-monitor", "diagram"].includes(tool.id);
+            const isAvailable = ["ddl-to-code", "sql-diff", "ssh-monitor", "diagram", "chat"].includes(tool.id);
 
             if (isAvailable) {
               return (

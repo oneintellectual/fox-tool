@@ -1,4 +1,5 @@
 allowBuilds:
+  better-sqlite3: true
   cpu-features: set this to true or false
   sharp: true
   ssh2: set this to true or false

@@ -105,14 +105,6 @@ function toCamelCase(name: string): string {
 }
 
 /**
- * 下划线转帕斯卡
- */
-function toPascalCase(name: string): string {
-  const camel = toCamelCase(name);
-  return camel.charAt(0).toUpperCase() + camel.slice(1);
-}
-
-/**
  * 生成 Java 代码
  */
 export function generateJava(table: TableInfo, config: Partial<JavaConfig> = {}): string {

@@ -2,8 +2,12 @@ import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 
-/** 数据库文件存放目录（项目根 data/） */
-const DATA_DIR = path.join(process.cwd(), "data");
+/**
+ * 数据库文件存放目录
+ * 优先使用环境变量 CHAT_DB_DIR（便于部署环境指定可写路径，如 /tmp）
+ * 默认使用项目根目录下的 data/（process.cwd() 在 next dev/start 时为项目根）
+ */
+const DATA_DIR = process.env.CHAT_DB_DIR || path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "chat.db");
 
 let dbInstance: Database.Database | null = null;

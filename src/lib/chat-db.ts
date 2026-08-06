@@ -3,11 +3,29 @@ import path from "path";
 import fs from "fs";
 
 /**
- * 数据库文件存放目录
- * 优先使用环境变量 CHAT_DB_DIR（便于部署环境指定可写路径，如 /tmp）
- * 默认使用项目根目录下的 data/（process.cwd() 在 next dev/start 时为项目根）
+ * 解析数据目录：
+ * 1. 环境变量 CHAT_DB_DIR 最高优先级
+ * 2. Vercel / Lambda 环境（process.cwd() 以 /var/task 开头或 VERCEL=1）→ 用 /tmp/fox-chat
+ * 3. 本地/自托管 → 项目根 data/
  */
-const DATA_DIR = process.env.CHAT_DB_DIR || path.join(process.cwd(), "data");
+function resolveDataDir(): string {
+  if (process.env.CHAT_DB_DIR) return process.env.CHAT_DB_DIR;
+
+  const cwd = process.cwd();
+  const isServerless =
+    process.env.VERCEL === "1" ||
+    process.env.AWS_LAMBDA_FUNCTION_VERSION !== undefined ||
+    cwd.startsWith("/var/task") ||
+    cwd.startsWith("/var/task/");
+
+  if (isServerless) {
+    return path.join("/tmp", "fox-chat");
+  }
+
+  return path.join(cwd, "data");
+}
+
+const DATA_DIR = resolveDataDir();
 const DB_PATH = path.join(DATA_DIR, "chat.db");
 
 let dbInstance: Database.Database | null = null;
@@ -16,7 +34,6 @@ let dbInstance: Database.Database | null = null;
 export function getDb(): Database.Database {
   if (dbInstance) return dbInstance;
 
-  // 确保数据目录存在
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
   }
@@ -24,7 +41,6 @@ export function getDb(): Database.Database {
   const db = new Database(DB_PATH);
   db.pragma("journal_mode = WAL");
 
-  // 会话表
   db.exec(`
     CREATE TABLE IF NOT EXISTS chat_sessions (
       id TEXT PRIMARY KEY,
@@ -36,7 +52,6 @@ export function getDb(): Database.Database {
     );
   `);
 
-  // 消息表
   db.exec(`
     CREATE TABLE IF NOT EXISTS chat_messages (
       id TEXT PRIMARY KEY,

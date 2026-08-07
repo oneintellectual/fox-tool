@@ -1,0 +1,14 @@
+{
+  "id": "text-counter",
+  "name": "文本统计器",
+  "version": "1.0.0",
+  "description": "统计文本的字符数、单词数、行数，演示 Fox Tool 外部模块的完整生命周期与渲染流程",
+  "author": "Fox Tool",
+  "icon": "🔢",
+  "tags": ["文本", "统计", "示例"],
+  "entry": "src/index.tsx",
+  "dependencies": [],
+  "permissions": {},
+  "frameworkVersion": "^0.1.0",
+  "license": "MIT"
+}

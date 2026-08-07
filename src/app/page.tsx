@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { listModules, type ModuleRow, type ModuleManifest } from "@/lib/module-system";
+
+export const dynamic = "force-dynamic";
 
 interface Tool {
   id: string;
@@ -125,6 +128,25 @@ const tools: Tool[] = [
 ];
 
 export default function Home() {
+  // 拉取已激活外部模块，合并展示在首页
+  const externalModules = listModules()
+    .filter((m) => m.status === "active")
+    .map((m) => ({ row: m, meta: JSON.parse(m.manifest) as ModuleManifest }));
+
+  const externalTools: Tool[] = externalModules.map(({ meta }) => ({
+    id: `ext-${meta.id}`,
+    name: meta.name,
+    description: meta.description,
+    icon: meta.icon || "🧩",
+    gradient: "from-indigo-500 to-purple-600",
+    shadowColor: "shadow-indigo-500/20",
+    href: `/modules/${meta.id}`,
+    tags: [...(meta.tags || []), "外部模块"],
+  }));
+
+  const allTools = [...tools, ...externalTools];
+  const builtinIds = ["ddl-to-code", "sql-diff", "ssh-monitor", "diagram", "chat", "docker-compose"];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
       {/* Header */}
@@ -134,7 +156,7 @@ export default function Home() {
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-400 to-rose-500 text-white font-bold text-xl shadow-lg shadow-orange-500/25">
               🦊
             </div>
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
                 Fox Tool
               </h1>
@@ -142,6 +164,12 @@ export default function Home() {
                 开发者工具箱 · 效率提升利器
               </p>
             </div>
+            <Link
+              href="/modules"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              🧩 模块管理
+            </Link>
           </div>
         </div>
       </header>
@@ -160,8 +188,8 @@ export default function Home() {
 
         {/* 工具卡片网格 */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {tools.map((tool) => {
-            const isAvailable = ["ddl-to-code", "sql-diff", "ssh-monitor", "diagram", "chat", "docker-compose"].includes(tool.id);
+          {allTools.map((tool) => {
+            const isAvailable = builtinIds.includes(tool.id) || tool.id.startsWith("ext-");
 
             if (isAvailable) {
               return (

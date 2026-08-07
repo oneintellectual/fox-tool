@@ -1,8 +1,9 @@
 allowBuilds:
   better-sqlite3: true
-  cpu-features: set this to true or false
+  cpu-features: true
+  esbuild: true
   sharp: true
-  ssh2: set this to true or false
+  ssh2: true
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver

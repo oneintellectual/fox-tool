@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { dynamicImport } from "@/lib/module-system/dynamic-import";
 
 interface Props {
   moduleId: string;
@@ -29,9 +30,9 @@ export default function ModuleRenderer({ moduleId, version }: Props) {
       try {
         // 以 version 为查询参数避免浏览器/import-map 缓存
         const url = `/api/modules/${moduleId}/bundle?v=${encodeURIComponent(version)}`;
+        const mod = await dynamicImport(url);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const mod: any = await import(/* @vite-ignore */ url);
-        const exported = mod?.default ?? mod;
+        const exported: any = mod?.default ?? mod;
         if (cancelled) return;
         if (!exported?.tool?.mount || typeof exported.tool.mount !== "function") {
           throw new Error("模块未导出 tool.mount 函数");

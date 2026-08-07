@@ -6,6 +6,7 @@ import {
   ModuleError,
   uninstallModule,
 } from "@/lib/module-system";
+import { assertNotServerless } from "@/lib/module-system/env";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -29,6 +30,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 /** PATCH /api/modules/[id] — 激活/停用模块 */
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
+    assertNotServerless("激活/停用模块");
     const { id } = await params;
     const body = (await req.json().catch(() => ({}))) as { action?: "activate" | "deactivate" };
     const action = body.action;
@@ -53,6 +55,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 /** DELETE /api/modules/[id] — 卸载模块 */
 export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
+    assertNotServerless("卸载模块");
     const { id } = await params;
     await uninstallModule(id);
     return NextResponse.json({ ok: true, moduleId: id });

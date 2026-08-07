@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { pathToFileURL } from "url";
 import esbuild from "esbuild";
+import { dynamicImport } from "./dynamic-import";
 import { cloneRepo, readFileInRepo } from "./git";
 import {
   collectSourceFiles,
@@ -125,8 +126,8 @@ const loadedModules = new Map<string, ModuleExport>();
 export async function loadServerBundle(serverPath: string): Promise<ModuleExport> {
   // 用时间戳 query 破坏 ESM 缓存，确保更新后重新加载
   const url = `${pathToFileURL(serverPath).href}?t=${Date.now()}`;
-  const mod = await import(url);
-  const exported: ModuleExport | undefined = mod?.default ?? mod;
+  const mod = await dynamicImport(url);
+  const exported: ModuleExport | undefined = (mod?.default ?? mod) as ModuleExport | undefined;
   if (!exported || !exported.metadata) {
     throw new ModuleError("模块未导出 default.metadata", "LOAD_FAILED");
   }

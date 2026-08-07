@@ -5,6 +5,7 @@ import {
   ModuleError,
   type InstallRequest,
 } from "@/lib/module-system";
+import { assertNotServerless } from "@/lib/module-system/env";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -22,6 +23,7 @@ export async function GET() {
 /** POST /api/modules — 通过 Git 地址安装模块 */
 export async function POST(req: NextRequest) {
   try {
+    assertNotServerless("安装模块");
     const body = (await req.json().catch(() => ({}))) as InstallRequest;
     if (!body.gitUrl?.trim()) {
       return NextResponse.json({ error: "gitUrl 不能为空" }, { status: 400 });

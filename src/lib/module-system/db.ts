@@ -1,5 +1,6 @@
 import Database from "better-sqlite3";
 import { ensureBaseDir, moduleDataDir, MODULE_DB_PATH } from "./paths";
+import { isVercelServerless } from "./env";
 import type { ModuleRow, ModuleStatus } from "./types";
 
 let dbInstance: Database.Database | null = null;
@@ -78,18 +79,31 @@ export function insertModule(row: ModuleRow): void {
 
 /** 按 module_id 查询 */
 export function findModuleByModuleId(moduleId: string): ModuleRow | null {
-  const db = getModuleDb();
-  const row = db.prepare("SELECT * FROM modules WHERE module_id = ?").get(moduleId);
-  return row ? mapRow(row as Record<string, unknown>) : null;
+  try {
+    const db = getModuleDb();
+    const row = db.prepare("SELECT * FROM modules WHERE module_id = ?").get(moduleId);
+    return row ? mapRow(row as Record<string, unknown>) : null;
+  } catch (e) {
+    // Vercel Serverless 上 better-sqlite3 可能无法加载（原生模块平台不匹配），
+    // 降级返回 null，保证页面可用（内置工具不依赖 DB）
+    if (isVercelServerless()) return null;
+    throw e;
+  }
 }
 
 /** 查询全部模块 */
 export function listModules(): ModuleRow[] {
-  const db = getModuleDb();
-  return db
-    .prepare("SELECT * FROM modules ORDER BY updated_at DESC")
-    .all()
-    .map((r) => mapRow(r as Record<string, unknown>));
+  try {
+    const db = getModuleDb();
+    return db
+      .prepare("SELECT * FROM modules ORDER BY updated_at DESC")
+      .all()
+      .map((r) => mapRow(r as Record<string, unknown>));
+  } catch (e) {
+    // Vercel Serverless 上 better-sqlite3 可能无法加载，降级返回空数组
+    if (isVercelServerless()) return [];
+    throw e;
+  }
 }
 
 /** 查询所有已激活模块 */

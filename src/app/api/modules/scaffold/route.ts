@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ModuleError, generateScaffold, type ScaffoldOptions } from "@/lib/module-system";
+import { assertNotServerless } from "@/lib/module-system/env";
 
 export const dynamic = "force-dynamic";
 
 /** POST /api/modules/scaffold — 生成模块项目脚手架 */
 export async function POST(req: NextRequest) {
   try {
+    assertNotServerless("生成模块脚手架");
     const body = (await req.json().catch(() => ({}))) as Partial<ScaffoldOptions>;
     if (!body.id || !body.name || !body.description) {
       return NextResponse.json({ error: "id / name / description 不能为空" }, { status: 400 });

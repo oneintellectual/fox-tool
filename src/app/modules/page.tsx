@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { listModules } from "@/lib/module-system/db";
+import { isVercelServerless } from "@/lib/module-system/env";
 import ModulesClient from "./ModulesClient";
 
 export const dynamic = "force-dynamic";
 
 export default function ModulesPage() {
   const modules = listModules();
+  const serverless = isVercelServerless();
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
       <header className="border-b border-slate-200/80 bg-white/60 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-950/60">
@@ -35,7 +37,7 @@ export default function ModulesPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        <ModulesClient initial={modules} />
+        <ModulesClient initial={modules} serverless={serverless} />
       </main>
     </div>
   );

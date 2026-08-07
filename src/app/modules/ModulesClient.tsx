@@ -8,7 +8,7 @@ interface ModuleRowWithMeta extends ModuleRow {
   meta: ModuleManifest;
 }
 
-export default function ModulesClient({ initial }: { initial: ModuleRow[] }) {
+export default function ModulesClient({ initial, serverless }: { initial: ModuleRow[]; serverless?: boolean }) {
   const [modules, setModules] = useState<ModuleRowWithMeta[]>(
     initial.map((m) => ({ ...m, meta: JSON.parse(m.manifest) as ModuleManifest })),
   );
@@ -115,6 +115,13 @@ export default function ModulesClient({ initial }: { initial: ModuleRow[] }) {
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           输入模块仓库地址，框架将自动拉取、安全扫描、构建并激活模块。
         </p>
+        {serverless && (
+          <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-900 dark:bg-amber-950/50 dark:text-amber-300">
+            ⚠ 当前为 Vercel Serverless 环境，模块安装/更新/卸载功能不可用（文件系统只读）。
+            请使用本地开发环境（<code className="rounded bg-amber-100 px-1 dark:bg-amber-900">pnpm dev</code>）运行模块管理。
+            内置工具不受影响，可正常使用。
+          </div>
+        )}
         <div className="mt-4 space-y-3">
           <input
             value={gitUrl}
@@ -157,14 +164,14 @@ export default function ModulesClient({ initial }: { initial: ModuleRow[] }) {
           <div className="flex gap-2">
             <button
               onClick={handleInstall}
-              disabled={busy || !gitUrl.trim()}
+              disabled={busy || !gitUrl.trim() || serverless}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy ? "安装中…" : "安装模块"}
             </button>
             <button
               onClick={fetchRefs}
-              disabled={!gitUrl.trim()}
+              disabled={!gitUrl.trim() || serverless}
               className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
             >
               拉取分支/标签

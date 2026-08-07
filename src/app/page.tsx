@@ -1,151 +1,14 @@
 import Link from "next/link";
-import { listModules, type ModuleRow, type ModuleManifest } from "@/lib/module-system";
+import { listModules, type ModuleManifest } from "@/lib/module-system";
+import { builtinTools, type BuiltinTool } from "@/tools/registry";
 
 export const dynamic = "force-dynamic";
 
-interface Tool {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  gradient: string;
-  shadowColor: string;
-  href: string;
-  tags: string[];
-}
-
-const tools: Tool[] = [
-  {
-    id: "ddl-to-code",
-    name: "DDL to Code",
-    description: "解析 SQL 建表语句，自动生成多语言代码，支持 Java 实体类（Lombok、MyBatis-Plus、Swagger 注解）",
-    icon: "🔧",
-    gradient: "from-blue-500 to-indigo-600",
-    shadowColor: "shadow-blue-500/20",
-    href: "/tools/ddl-to-code",
-    tags: ["SQL", "Java", "代码生成"],
-  },
-  {
-    id: "sql-diff",
-    name: "SQL Diff",
-    description: "对比两组建表 SQL 差异，自动生成 ALTER TABLE 语句，支持新增表、删除表、新增列、删除列、修改列",
-    icon: "⚡",
-    gradient: "from-emerald-500 to-teal-600",
-    shadowColor: "shadow-emerald-500/20",
-    href: "/tools/sql-diff",
-    tags: ["SQL", "对比", "ALTER"],
-  },
-  {
-    id: "ssh-monitor",
-    name: "SSH Linux 监控",
-    description: "通过 SSH 连接远程 Linux 服务器，实时监控 CPU、内存、磁盘、网络与进程指标",
-    icon: "📡",
-    gradient: "from-violet-500 to-purple-600",
-    shadowColor: "shadow-violet-500/20",
-    href: "/tools/ssh-monitor",
-    tags: ["SSH", "Linux", "监控"],
-  },
-  {
-    id: "diagram",
-    name: "绘图工具",
-    description: "通过表单填写节点与连线，自动布局生成软件施工图与网络拓扑图，支持导出 SVG / Mermaid / JSON",
-    icon: "📐",
-    gradient: "from-cyan-500 to-sky-600",
-    shadowColor: "shadow-cyan-500/20",
-    href: "/tools/diagram",
-    tags: ["绘图", "拓扑图", "架构图"],
-  },
-  {
-    id: "chat",
-    name: "AI 对话",
-    description: "基于 WebLLM + WebGPU 的浏览器本地 AI 对话，模型完全在设备内推理，数据不离开浏览器",
-    icon: "💬",
-    gradient: "from-emerald-500 to-teal-600",
-    shadowColor: "shadow-emerald-500/20",
-    href: "/tools/chat",
-    tags: ["AI", "WebGPU", "本地推理"],
-  },
-  {
-    id: "docker-compose",
-    name: "Docker Compose 生成器",
-    description: "将 docker run 命令批量转换为 docker-compose.yml 配置文件，支持端口、卷、环境变量、健康检查等",
-    icon: "🐳",
-    gradient: "from-orange-500 to-rose-600",
-    shadowColor: "shadow-orange-500/20",
-    href: "/tools/docker-compose",
-    tags: ["Docker", "Compose", "YAML"],
-  },
-  {
-    id: "coming-soon-1",
-    name: "JSON 格式化",
-    description: "JSON 数据格式化、压缩、校验与转换工具",
-    icon: "{ }",
-    gradient: "from-emerald-500 to-teal-600",
-    shadowColor: "shadow-emerald-500/20",
-    href: "#",
-    tags: ["JSON", "格式化"],
-  },
-  {
-    id: "coming-soon-2",
-    name: "Base64 编解码",
-    description: "文本与 Base64 互转，支持文件编码",
-    icon: "🔐",
-    gradient: "from-amber-500 to-orange-600",
-    shadowColor: "shadow-amber-500/20",
-    href: "#",
-    tags: ["编码", "解码"],
-  },
-  {
-    id: "coming-soon-3",
-    name: "正则测试",
-    description: "在线正则表达式测试与匹配验证",
-    icon: ".*",
-    gradient: "from-violet-500 to-purple-600",
-    shadowColor: "shadow-violet-500/20",
-    href: "#",
-    tags: ["正则", "测试"],
-  },
-  {
-    id: "coming-soon-4",
-    name: "时间戳转换",
-    description: "Unix 时间戳与日期时间互转",
-    icon: "⏱",
-    gradient: "from-rose-500 to-pink-600",
-    shadowColor: "shadow-rose-500/20",
-    href: "#",
-    tags: ["时间", "转换"],
-  },
-  {
-    id: "coming-soon-5",
-    name: "颜色转换",
-    description: "HEX、RGB、HSL 颜色格式互转与色板",
-    icon: "🎨",
-    gradient: "from-cyan-500 to-sky-600",
-    shadowColor: "shadow-cyan-500/20",
-    href: "#",
-    tags: ["颜色", "设计"],
-  },
-];
-
 export default function Home() {
-  // 拉取已激活外部模块，合并展示在首页
+  // 已激活外部模块，合并展示在首页
   const externalModules = listModules()
     .filter((m) => m.status === "active")
-    .map((m) => ({ row: m, meta: JSON.parse(m.manifest) as ModuleManifest }));
-
-  const externalTools: Tool[] = externalModules.map(({ meta }) => ({
-    id: `ext-${meta.id}`,
-    name: meta.name,
-    description: meta.description,
-    icon: meta.icon || "🧩",
-    gradient: "from-indigo-500 to-purple-600",
-    shadowColor: "shadow-indigo-500/20",
-    href: `/modules/${meta.id}`,
-    tags: [...(meta.tags || []), "外部模块"],
-  }));
-
-  const allTools = [...tools, ...externalTools];
-  const builtinIds = ["ddl-to-code", "sql-diff", "ssh-monitor", "diagram", "chat", "docker-compose"];
+    .map((m) => JSON.parse(m.manifest) as ModuleManifest);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
@@ -188,78 +51,24 @@ export default function Home() {
 
         {/* 工具卡片网格 */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {allTools.map((tool) => {
-            const isAvailable = builtinIds.includes(tool.id) || tool.id.startsWith("ext-");
+          {/* 已上线的内置工具 */}
+          {builtinTools
+            .filter((t) => t.available)
+            .map((tool) => (
+              <BuiltinCard key={tool.manifest.id} tool={tool} />
+            ))}
 
-            if (isAvailable) {
-              return (
-                <Link
-                  key={tool.id}
-                  href={tool.href}
-                  className={`group relative flex flex-col rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 dark:border-slate-700/80 dark:bg-slate-900 hover:shadow-lg hover:border-slate-300 hover:-translate-y-0.5 dark:hover:border-slate-600 cursor-pointer`}
-                >
-                  <div
-                    className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${tool.gradient} text-white text-xl font-bold shadow-lg ${tool.shadowColor}`}
-                  >
-                    {tool.icon}
-                  </div>
-                  <h3 className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {tool.name}
-                  </h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                    {tool.description}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {tool.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-md bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="absolute right-5 top-6 text-slate-300 transition-all group-hover:text-blue-500 group-hover:translate-x-0.5 dark:text-slate-600 dark:group-hover:text-blue-400">
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </Link>
-              );
-            }
+          {/* 已激活的外部模块 */}
+          {externalModules.map((meta) => (
+            <ExternalCard key={meta.id} meta={meta} />
+          ))}
 
-            return (
-              <div
-                key={tool.id}
-                className="group relative flex flex-col rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 dark:border-slate-700/80 dark:bg-slate-900 opacity-60 cursor-default"
-              >
-                <div
-                  className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${tool.gradient} text-white text-xl font-bold shadow-lg ${tool.shadowColor}`}
-                >
-                  {tool.icon}
-                </div>
-                <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-                  {tool.name}
-                  <span className="ml-2 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                    即将上线
-                  </span>
-                </h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                  {tool.description}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  {tool.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-md bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+          {/* 未上线的占位工具 */}
+          {builtinTools
+            .filter((t) => !t.available)
+            .map((tool) => (
+              <PlaceholderCard key={tool.manifest.id} tool={tool} />
+            ))}
         </div>
       </main>
 
@@ -271,6 +80,117 @@ export default function Home() {
           </p>
         </div>
       </footer>
+    </div>
+  );
+}
+
+/** 已上线内置工具卡片 */
+function BuiltinCard({ tool }: { tool: BuiltinTool }) {
+  const { manifest: m, style, href } = tool;
+  return (
+    <Link
+      href={href}
+      className="group relative flex flex-col rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 dark:border-slate-700/80 dark:bg-slate-900 hover:shadow-lg hover:border-slate-300 hover:-translate-y-0.5 dark:hover:border-slate-600 cursor-pointer"
+    >
+      <div
+        className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${style.gradient} text-white text-xl font-bold shadow-lg ${style.shadowColor}`}
+      >
+        {m.icon}
+      </div>
+      <h3 className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+        {m.name}
+      </h3>
+      <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+        {m.description}
+      </p>
+      <div className="mt-4 flex flex-wrap gap-1.5">
+        {m.tags?.map((tag) => (
+          <span
+            key={tag}
+            className="rounded-md bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+      <div className="absolute right-5 top-6 text-slate-300 transition-all group-hover:text-blue-500 group-hover:translate-x-0.5 dark:text-slate-600 dark:group-hover:text-blue-400">
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+    </Link>
+  );
+}
+
+/** 外部模块卡片 */
+function ExternalCard({ meta }: { meta: ModuleManifest }) {
+  const gradient = "from-indigo-500 to-purple-600";
+  const shadowColor = "shadow-indigo-500/20";
+  const tags = [...(meta.tags || []), "外部模块"];
+  return (
+    <Link
+      href={`/modules/${meta.id}`}
+      className="group relative flex flex-col rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 dark:border-slate-700/80 dark:bg-slate-900 hover:shadow-lg hover:border-slate-300 hover:-translate-y-0.5 dark:hover:border-slate-600 cursor-pointer"
+    >
+      <div
+        className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-white text-xl font-bold shadow-lg ${shadowColor}`}
+      >
+        {meta.icon || "🧩"}
+      </div>
+      <h3 className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+        {meta.name}
+      </h3>
+      <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+        {meta.description}
+      </p>
+      <div className="mt-4 flex flex-wrap gap-1.5">
+        {tags.map((tag) => (
+          <span
+            key={tag}
+            className="rounded-md bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+      <div className="absolute right-5 top-6 text-slate-300 transition-all group-hover:text-blue-500 group-hover:translate-x-0.5 dark:text-slate-600 dark:group-hover:text-blue-400">
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+    </Link>
+  );
+}
+
+/** 未上线占位卡片 */
+function PlaceholderCard({ tool }: { tool: BuiltinTool }) {
+  const { manifest: m, style } = tool;
+  return (
+    <div className="group relative flex flex-col rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition-all duration-200 dark:border-slate-700/80 dark:bg-slate-900 opacity-60 cursor-default">
+      <div
+        className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${style.gradient} text-white text-xl font-bold shadow-lg ${style.shadowColor}`}
+      >
+        {m.icon}
+      </div>
+      <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+        {m.name}
+        <span className="ml-2 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+          即将上线
+        </span>
+      </h3>
+      <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+        {m.description}
+      </p>
+      <div className="mt-4 flex flex-wrap gap-1.5">
+        {m.tags?.map((tag) => (
+          <span
+            key={tag}
+            className="rounded-md bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

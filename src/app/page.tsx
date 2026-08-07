@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { listModules, type ModuleManifest } from "@/lib/module-system";
+import { listModules } from "@/lib/module-system/db";
+import type { ModuleManifest } from "@/lib/module-system/types";
 import { builtinTools, type BuiltinTool } from "@/tools/registry";
 
 export const dynamic = "force-dynamic";

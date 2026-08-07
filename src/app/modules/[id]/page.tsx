@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { findModuleByModuleId } from "@/lib/module-system";
+import { findModuleByModuleId } from "@/lib/module-system/db";
 import ModuleRenderer from "./ModuleRenderer";
 
 export const dynamic = "force-dynamic";

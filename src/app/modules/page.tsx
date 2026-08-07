@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listModules } from "@/lib/module-system";
+import { listModules } from "@/lib/module-system/db";
 import ModulesClient from "./ModulesClient";
 
 export const dynamic = "force-dynamic";

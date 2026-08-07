@@ -28,12 +28,15 @@ export default function Home() {
                 开发者工具箱 · 效率提升利器
               </p>
             </div>
+            {/* 模块管理入口暂时隐藏：动态模块加载在 Vercel Serverless 环境受限，
+                待实现构建分离方案（外部 Worker + KV/Blob）后恢复。
             <Link
               href="/modules"
               className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               🧩 模块管理
             </Link>
+            */}
           </div>
         </div>
       </header>
